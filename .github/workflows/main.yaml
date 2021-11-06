@@ -1,0 +1,40 @@
+name: wildfly
+on:
+  push:
+    branches:
+      - initial
+      - main
+
+env:
+  ARCHITECTURES: linux/amd64,linux/arm64
+  DOCKER_IMAGE: ci4rail/bsl
+  DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+  DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+
+jobs:
+  build-push-docker-image:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+      - name: Log into Docker
+        run: echo ${DOCKER_PASSWORD} | docker login -u ${DOCKER_USERNAME} --password-stdin
+      - name: Set up QEMU
+        id: qemu
+        uses: docker/setup-qemu-action@v1
+        with:
+          image: tonistiigi/binfmt:latest
+          platforms: ${{ env.ARCHITECTURES }}
+      - name: Set up Docker Buildx
+        id: buildx
+        uses: docker/setup-buildx-action@v1
+        with:
+          version: v0.6.0
+      - name: Build
+        run: |
+          docker buildx build \
+                      --push \
+                      --platform ${ARCHITECTURES} \
+                      --build-arg VERSION=${GITHUB_SHA::8} \
+                      --tag ${DOCKER_IMAGE}:latest \
+                      --tag ${DOCKER_IMAGE}:${GITHUB_SHA::8} .
