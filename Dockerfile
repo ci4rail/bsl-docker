@@ -1,7 +1,7 @@
 FROM python:3.9.4-slim-buster AS builder
 ENV DEBIAN_FRONTEND=noninteractive
 RUN apt-get update && apt-get install -y --no-install-recommends make gcc curl build-essential
-RUN pip3 install blickfeld_scanner
+RUN pip3 install blickfeld_scanner numpy
 
 FROM python:3.9.4-slim-buster
 
